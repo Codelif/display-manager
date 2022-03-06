@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Display Manager{% endblock %}
+
+{% block body %}
+
+<script>
+  let info = {{ info|tojson }}
+  let displays = {{ displays|tojson }}
+</script>
+
+<div class="container">
+    <div class="py-3 text-center">
+      <img class="d-block mx-auto mb-4" src="{{ url_for('static', filename='images/display.png') }}" alt="" width="72" height="72">
+      <h2 class="mb-3">Display Manager</h2>
+      <!-- <p class="lead">Below is an example form built entirely with Bootstrap's form controls. Each required form group has a validation state that can be triggered by attempting to submit the form without completing it.</p> -->
+    </div>
+
+      <div id="form-container" class="order-md-1">
+        <form action="#" id="dform" class="mb-3">
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="displaySelect"><h4 class="mb-3">Display</h4></label>
+                <select name="display" id="displaySelect" class="form-select" onchange="updateVariables();updateModeOutput();onChangeDisplay();" aria-label="Select Display to change settings" required>
+                  {% for display in displays %}
+                    {% if primary == display %}
+                    <option value="{{ loop.index }}" selected>{{ display }}</option>
+                    {% else %}
+                    <option value="{{ loop.index }}">{{ display }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+                <small class="text-muted">All settings will apply to this display</small>
+              </div>
+          </div>
+
+          <hr class="mb-4">
+          
+          <div>
+            <h4 class="mb-3">Resolution</h4>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="modeSelect">Mode</label>
+                <select onchange="updateModeOutput();updateRates();" name="resolution" id="modeSelect" class="form-select" aria-label="Select display resolution" required>
+                  <option value="1">1920x1080</option>
+                  <option value="2">1600x900</option>
+                  <option value="3">1280x720</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="rateSelect">Refresh rate</label>
+                <select name="refresh-rate" id="rateSelect" class="form-select" aria-label="Select refresh rate" required>
+                  <option value="1">60</option>
+                  <option value="2">59</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="form-check">
+                  <input rel="primary" id="primary-check" class="form-check-input" type="checkbox">
+                  <label class="form-check-label" for="primary-check">
+                    Primary
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="mb-4">
+
+          <div>
+            <h4 class="mb-3">Brightness</h4>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="brightnessRange" class="form-label">Magnitude</label>
+                <input name="brightness" type="range" id="brightnessRange" class="form-range" value="0.5" min="0.05" max="1" step="0.01" oninput="this.nextElementSibling.value = Math.round(this.value*100)+'%'">
+                <output id="brightout"></output>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="form-check">
+                  <input rel="zero-active" class="form-check-input" type="checkbox" id="zeroSafeCheck" onclick="changeZeroState(this)">
+                  <label class="form-check-label" for="zeroSafeCheck" style="color: red;">
+                    Enable 0% Brightness (Caution!)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <hr class="mb-4">
+
+          <div>
+            <h4 class="mb-3">Scale</h4>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="scaleRange" class="form-label">Magnitude</label>
+                <input name="scale" type="range" id="scaleRange" class="form-range" value="1" min="0.5" max="3" step="0.05" oninput="this.nextElementSibling.value = parseFloat(this.value).toFixed(2)+'x'; updateModeOutput()">
+                <output id="scaleout"></output>
+                <br>
+                <output class="text-muted" id="equivMode"></output>
+              </div>
+            </div>
+          </div>
+
+          <hr class="mb-4">
+
+          <div>
+            <h3 class="mb-3">Orientation</h3>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <h5>Rotate Screen</h5>
+                  <select name="orientation" id="rotationSelect" class="form-select" aria-label="Select Rotation to change settings" required>
+                    <option value="1">Landscape</option>
+                    <option value="2">Portrait</option>
+                    <option value="3">Landscape (flipped)</option>
+                    <option value="4">Portrait (flipped)</option>
+                  </select>
+                </div>
+                
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <h5>Mirror Screen</h5>
+                <div class="form-check">
+                  <input rel="horizon-mirror" class="form-check-input" type="checkbox" id="mirror-horizontal">
+                  <label class="form-check-label" for="mirror-horizontal">
+                    Horizontal
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input rel="vert-mirror" class="form-check-input" type="checkbox" id="mirror-vertical">
+                  <label class="form-check-label" for="mirror-vertical">
+                    Vertical
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="mb-4">
+        
+          <div>
+            <h4 class="mb-3">Save configuration</h4>
+            <div class="d-block my-3">
+              <div class="form-check">
+                <input id="no-config" name="config" value="1" type="radio" class="form-check-input" checked required>
+                <label class="form-check-label" for="no-config">Apply without saving</label>
+              </div>
+              <div class="form-check">
+                <input id="file-config" name="config" value="2" type="radio" class="form-check-input" required>
+                <label class="form-check-label" for="file-config">Save config to file</label>
+              </div>
+              <div class="form-check">
+                <input id="file-startup-config" name="config" value="3" type="radio" class="form-check-input" required>
+                <label class="form-check-label" for="file-startup-config">Save config and run on startup</label>
+              </div>
+            </div>
+            <small class="text-muted">Save config location: <code>$HOME/.config/dm-web/config</code></small>
+            <br>
+            <small class="text-muted">Startup config location: <code>$HOME/.config/dm-web/start-config</code></small>
+        </div>
+
+          <hr class="mb-4">
+          <button class="btn btn-primary btn-lg btn-block" type="submit">Apply configs</button>
+        </form>
+      </div>
+    <!-- </div> -->
+
+    <footer class="my-5 pt-5 text-muted text-center text-small">
+      <p class="mb-1">&copy; 2017-2018 Company Name</p>
+      <ul class="list-inline">
+        <li class="list-inline-item"><a href="#">Privacy</a></li>
+        <li class="list-inline-item"><a href="#">Terms</a></li>
+        <li class="list-inline-item"><a href="#">Support</a></li>
+      </ul>
+    </footer>
+  </div>
+
+{% endblock %}
