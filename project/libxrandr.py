@@ -5,7 +5,7 @@ import subprocess
 def get_brightness() -> dict:
     v = subprocess.getoutput("xrandr --verbose").splitlines()
     m, b = [], []
-    primary: str
+    primary = str()
     for i in v:
         if " connected" in i:
             m.append(i.split()[0])
@@ -114,7 +114,7 @@ def get_data(display, info):
     
 
 def set_info(post):
-    print("Updated Settings")
+    print("Updating Settings...")
     info = get_info()
     
     ## Set Display & Get Data
@@ -157,4 +157,6 @@ def set_info(post):
     
     if scale != data["scale"]:
         subprocess.run(f"{cmd_display} --scale {scale}x{scale}".split())
+
+    print("Updated Settings")
 
